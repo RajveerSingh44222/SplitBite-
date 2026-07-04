@@ -81,7 +81,7 @@ export default function SignupPage() {
             </svg>
             Continue with Google
           </Button>
-          <Link href={ROUTES.join("DIWALI-8F2K")}>
+          <Link href={ROUTES.joinEntry}>
             <Button variant="ghost" size="lg" className="w-full">
               Join an event as a guest instead
             </Button>

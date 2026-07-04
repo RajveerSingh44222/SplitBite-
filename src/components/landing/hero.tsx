@@ -117,7 +117,7 @@ export function Hero() {
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Button>
           </Link>
-          <Link href={ROUTES.join("DIWALI-8F2K")}>
+          <Link href={ROUTES.joinEntry}>
             <Button size="lg" variant="outline">
               I have an invite link
             </Button>

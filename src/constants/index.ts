@@ -10,6 +10,7 @@ export const ROUTES = {
   review: (id: string) => `/events/${id}/review`,
   success: (id: string) => `/events/${id}/success`,
   join: (code: string) => `/join/${code}`,
+  joinEntry: "/join"
 };
 
 export const APP_NAME = "PartyPlatter";
