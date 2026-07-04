@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, PartyPopper } from "lucide-react";
@@ -20,7 +20,8 @@ type Tab = "upcoming" | "past";
 
 export default function DashboardPage() {
   const [tab, setTab] = useState<Tab>("upcoming");
-  const events = useEventStore((s) => s.listMine());
+  const order = useEventStore((s) => s.order);
+  const events = useEventStore((s) => s.events);
   const activities = useEventStore((s) => s.activities);
 
   const { isLoading } = useQuery({
@@ -30,16 +31,25 @@ export default function DashboardPage() {
       return true;
     },
   });
+  const myEvents = useMemo(
+  () => order.map((id) => events[id]).filter(Boolean),
+  [order, events]
+);
 
-  const upcoming = events.filter((e) => e.status !== "completed");
-  const past = events.filter((e) => e.status === "completed");
-  const hosted = events.filter((e) => e.hostId === currentUser.id);
-  const joined = events.filter((e) => e.hostId !== currentUser.id);
+  const upcoming = useMemo(() => myEvents.filter((e) => e.status !== "completed"), [myEvents]);
+  const past = useMemo(() => myEvents.filter((e) => e.status === "completed"), [myEvents]);
+  const hosted = useMemo(() => myEvents.filter((e) => e.hostId === currentUser.id), [myEvents]);
+  const joined = useMemo(() => myEvents.filter((e) => e.hostId !== currentUser.id), [myEvents]);
   const shown = tab === "upcoming" ? upcoming : past;
 
-  const recentActivity = Object.values(activities).flat().sort(
-    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-  ).slice(0, 6);
+  const recentActivity = useMemo(
+  () =>
+    Object.values(activities)
+      .flat()
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, 6),
+  [activities]
+);
 
   return (
     <main className="min-h-screen pb-24">

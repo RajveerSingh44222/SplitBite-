@@ -22,11 +22,12 @@ import { mockRestaurants } from "@/mock/restaurants";
 import { formatCurrency, formatShortDate } from "@/lib/utils";
 import { ROUTES } from "@/constants";
 
+const EMPTY_ACTIVITIES: never[] = [];
 export default function EventPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const event = useEventStore((s) => s.events[params.id]);
-  const activities = useEventStore((s) => s.activities[params.id] ?? []);
+  const activities = useEventStore((s) => s.activities[params.id] ?? EMPTY_ACTIVITIES);
   const autoSelectRemaining = useEventStore((s) => s.autoSelectRemaining);
   const showToast = useUIStore((s) => s.showToast);
   const [aiModalOpen, setAiModalOpen] = useState(false);
