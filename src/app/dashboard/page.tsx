@@ -15,6 +15,7 @@ import { useEventStore } from "@/store/event-store";
 import { currentUser } from "@/mock/users";
 import { ROUTES } from "@/constants";
 import { useQuery } from "@tanstack/react-query";
+import { Link2 } from "lucide-react";
 
 type Tab = "upcoming" | "past";
 
@@ -63,12 +64,20 @@ export default function DashboardPage() {
             </h1>
             <p className="mt-1 text-ink-soft">Here&apos;s what&apos;s happening with your gatherings.</p>
           </div>
-          <Link href={ROUTES.createEvent} className="hidden sm:block">
-            <Button size="lg" className="group">
-              <Plus className="h-4 w-4" />
-              Create event
-            </Button>
-          </Link>
+          <div className="hidden gap-2 sm:flex">
+  <Link href={ROUTES.joinEntry}>
+    <Button size="lg" variant="outline">
+      <Link2 className="h-4 w-4" />
+      Join event
+    </Button>
+  </Link>
+  <Link href={ROUTES.createEvent}>
+    <Button size="lg" className="group">
+      <Plus className="h-4 w-4" />
+      Create event
+    </Button>
+  </Link>
+</div>
         </div>
 
         <div className="mt-8">
