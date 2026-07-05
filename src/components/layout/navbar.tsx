@@ -8,11 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
 import { Dropdown, DropdownItem } from "@/components/ui/dropdown";
 import { useUIStore } from "@/store/ui-store";
-import { currentUser } from "@/mock/users";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import { ROUTES } from "@/constants";
 import { NotificationsPanel } from "@/components/dashboard/notifications-panel";
 
 export function Navbar({ authed }: { authed?: boolean }) {
+  const currentUser = useCurrentUser();
   const [mobileOpen, setMobileOpen] = useState(false);
   const theme = useUIStore((s) => s.theme);
   const toggleTheme = useUIStore((s) => s.toggleTheme);

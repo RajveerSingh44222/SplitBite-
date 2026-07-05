@@ -11,13 +11,16 @@ import { AvatarGroup } from "@/components/ui/avatar";
 import { Countdown } from "@/components/shared/countdown";
 import { useEventStore } from "@/store/event-store";
 import { useUIStore } from "@/store/ui-store";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import { formatCurrency, formatShortDate } from "@/lib/utils";
 import { ROUTES } from "@/constants";
 
 export default function JoinPage() {
   const params = useParams<{ code: string }>();
   const router = useRouter();
+  const currentUser = useCurrentUser();
   const events = useEventStore((s) => s.events);
+  const joinEvent = useEventStore((s) => s.joinEvent);
   const pushActivity = useEventStore((s) => s.pushActivity);
   const showToast = useUIStore((s) => s.showToast);
   const [name, setName] = useState("");
@@ -45,15 +48,24 @@ export default function JoinPage() {
   function handleJoin() {
     setJoining(true);
     setTimeout(() => {
-      pushActivity(event!.id, {
-        type: "joined",
-        actorName: name.trim() || "A new guest",
-        actorAvatar: `https://i.pravatar.cc/150?u=${encodeURIComponent(name || "guest")}`,
-        message: "joined the event",
-        timestamp: new Date().toISOString(),
-      });
+      const { alreadyJoined } = joinEvent(event!.id, name.trim());
+      const displayName = name.trim() || currentUser.name;
+
+      if (!alreadyJoined) {
+        pushActivity(event!.id, {
+          type: "joined",
+          actorName: displayName,
+          actorAvatar: currentUser.avatar,
+          message: "joined the event",
+          timestamp: new Date().toISOString(),
+        });
+      }
+
       setJoining(false);
-      showToast({ title: `Welcome, ${name.trim() || "guest"}!`, kind: "success" });
+      showToast({
+        title: alreadyJoined ? `Welcome back, ${displayName}!` : `Welcome, ${displayName}!`,
+        kind: "success",
+      });
       router.push(ROUTES.event(event!.id));
     }, 900);
   }

@@ -24,7 +24,7 @@ export function QuickActionsGrid() {
       label: "Past orders",
       icon: ShoppingBag,
       colorClass: "text-kasturi bg-kasturi-light",
-      href: ROUTES.dashboard,
+      href: `${ROUTES.dashboard}?tab=past`,
     },
     {
       label: "Settings",

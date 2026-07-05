@@ -1,7 +1,7 @@
 import { create } from "zustand";
-import type { ActivityItem, CartLine, PartyEvent, ParticipantStatus } from "@/types";
+import type { ActivityItem, CartLine, Participant, PartyEvent, ParticipantStatus } from "@/types";
 import { buildSeedEvent, buildActivityFeed, buildPastEvents } from "@/mock/events";
-import { currentUser } from "@/mock/users";
+import { getCurrentUser } from "@/hooks/use-current-user";
 import { mockRestaurants } from "@/mock/restaurants";
 import { randomId } from "@/lib/utils";
 
@@ -25,6 +25,7 @@ interface EventState {
   getEvent: (id: string) => PartyEvent | undefined;
   listMine: () => PartyEvent[];
   pushActivity: (eventId: string, activity: Omit<ActivityItem, "id" | "eventId">) => void;
+  joinEvent: (eventId: string, guestName?: string) => { alreadyJoined: boolean };
 
   setParticipantRestaurant: (eventId: string, userId: string, restaurantId: string, restaurantName: string) => void;
   updateCart: (eventId: string, userId: string, cart: CartLine[]) => void;
@@ -50,6 +51,7 @@ export const useEventStore = create<EventState>((set, get) => ({
   order: [seed.id, ...pastEvents.map((e) => e.id)],
 
   createEvent: (input) => {
+    const currentUser = getCurrentUser();
     const id = randomId("evt");
     const deadlineISO = new Date(Date.now() + input.inviteExpiryMins * 60 * 1000).toISOString();
     const inviteCode = `${input.name.split(" ")[0].toUpperCase().slice(0, 6)}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
@@ -118,6 +120,48 @@ export const useEventStore = create<EventState>((set, get) => ({
         [eventId]: [{ ...activity, id: randomId("act"), eventId }, ...(state.activities[eventId] ?? [])],
       },
     })),
+
+  /**
+   * Actually adds the logged-in user as a participant of the event, instead
+   * of only writing an activity-feed entry (which was purely cosmetic and
+   * never showed the new guest in Participants / Host Panel / budget math).
+   *
+   * Returns { alreadyJoined: true } if this user is already a participant
+   * (e.g. the host revisiting their own invite link) so the caller can skip
+   * showing a duplicate "joined" activity/toast.
+   */
+  joinEvent: (eventId, guestName) => {
+    const currentUser = getCurrentUser();
+    const event = get().events[eventId];
+    if (!event) return { alreadyJoined: false };
+
+    const alreadyJoined = event.participants.some((p) => p.userId === currentUser.id);
+    if (alreadyJoined) return { alreadyJoined: true };
+
+    const newParticipant: Participant = {
+      userId: currentUser.id,
+      name: guestName?.trim() || currentUser.name,
+      avatar: currentUser.avatar,
+      status: "invited",
+      cart: [],
+      cartValue: 0,
+      isHost: false,
+      joinedAt: new Date().toISOString(),
+    };
+
+    set((state) => {
+      const current = state.events[eventId];
+      if (!current) return state;
+      return {
+        events: {
+          ...state.events,
+          [eventId]: { ...current, participants: [...current.participants, newParticipant] },
+        },
+      };
+    });
+
+    return { alreadyJoined: false };
+  },
 
   setParticipantRestaurant: (eventId, userId, restaurantId, restaurantName) =>
     set((state) => {

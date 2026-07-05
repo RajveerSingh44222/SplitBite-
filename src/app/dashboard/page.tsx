@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, PartyPopper } from "lucide-react";
@@ -12,7 +13,7 @@ import { EventCard } from "@/components/dashboard/event-card";
 import { DashboardStats } from "@/components/dashboard/stats";
 import { ActivityFeed } from "@/components/shared/activity-feed";
 import { useEventStore } from "@/store/event-store";
-import { currentUser } from "@/mock/users";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import { getEventPhase } from "@/lib/utils";
 import { ROUTES } from "@/constants";
 import { useQuery } from "@tanstack/react-query";
@@ -20,8 +21,18 @@ import { Link2 } from "lucide-react";
 
 type Tab = "upcoming" | "past";
 
-export default function DashboardPage() {
-  const [tab, setTab] = useState<Tab>("upcoming");
+function DashboardContent() {
+  const currentUser = useCurrentUser();
+  const searchParams = useSearchParams();
+  const [tab, setTab] = useState<Tab>(() => (searchParams.get("tab") === "past" ? "past" : "upcoming"));
+
+  // If someone navigates here again with a different ?tab= while already on
+  // the page (e.g. clicking "Past orders" from /profile while /dashboard is
+  // already open in another tab/back-forward cache), keep the tab in sync.
+  useEffect(() => {
+    if (searchParams.get("tab") === "past") setTab("past");
+  }, [searchParams]);
+
   const order = useEventStore((s) => s.order);
   const events = useEventStore((s) => s.events);
   const activities = useEventStore((s) => s.activities);
@@ -44,8 +55,8 @@ export default function DashboardPage() {
   // eventually became the literal string "completed".
   const upcoming = useMemo(() => myEvents.filter((e) => getEventPhase(e.status) !== "completed"), [myEvents]);
   const past = useMemo(() => myEvents.filter((e) => getEventPhase(e.status) === "completed"), [myEvents]);
-  const hosted = useMemo(() => myEvents.filter((e) => e.hostId === currentUser.id), [myEvents]);
-  const joined = useMemo(() => myEvents.filter((e) => e.hostId !== currentUser.id), [myEvents]);
+  const hosted = useMemo(() => myEvents.filter((e) => e.hostId === currentUser.id), [myEvents, currentUser.id]);
+  const joined = useMemo(() => myEvents.filter((e) => e.hostId !== currentUser.id), [myEvents, currentUser.id]);
   const shown = tab === "upcoming" ? upcoming : past;
 
   const recentActivity = useMemo(
@@ -163,5 +174,13 @@ export default function DashboardPage() {
         </motion.div>
       </Link>
     </main>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={null}>
+      <DashboardContent />
+    </Suspense>
   );
 }

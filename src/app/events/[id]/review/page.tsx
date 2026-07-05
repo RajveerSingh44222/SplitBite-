@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { Navbar } from "@/components/layout/navbar";
 import { ReviewEvent } from "@/components/event/review-event";
 import { useEventStore } from "@/store/event-store";
-import { currentUser } from "@/mock/users";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import { ROUTES } from "@/constants";
 
 /**
@@ -15,6 +15,7 @@ import { ROUTES } from "@/constants";
  * just adds the page chrome (Navbar + back link) specific to this URL.
  */
 export default function ReviewPage() {
+  const currentUser = useCurrentUser();
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const event = useEventStore((s) => s.events[params.id]);

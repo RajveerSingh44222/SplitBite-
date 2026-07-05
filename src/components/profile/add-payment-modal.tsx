@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useProfileStore } from "@/store/profile-store";
 import { useUIStore } from "@/store/ui-store";
-import { currentUser } from "@/mock/users";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import { WALLET_PROVIDERS } from "@/mock/payment";
 import type { WalletProvider } from "@/types/payment";
 
@@ -27,6 +27,7 @@ interface AddPaymentModalProps {
 }
 
 export function AddPaymentModal({ open, onClose }: AddPaymentModalProps) {
+  const currentUser = useCurrentUser();
   const [selected, setSelected] = useState<MethodType | null>(null);
 
   const [holderName, setHolderName] = useState("");

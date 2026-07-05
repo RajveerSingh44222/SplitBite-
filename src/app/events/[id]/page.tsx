@@ -10,7 +10,7 @@ import { ReviewEvent } from "@/components/event/review-event";
 import { CompletedEvent } from "@/components/event/completed-event";
 import { DraftEvent } from "@/components/event/draft-event";
 import { useEventStore } from "@/store/event-store";
-import { currentUser } from "@/mock/users";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import { getEventPhase } from "@/lib/utils";
 import { ROUTES } from "@/constants";
 
@@ -26,11 +26,12 @@ const EMPTY_ACTIVITIES: never[] = [];
  * components/event/{live,review,completed,draft}-event.tsx.
  */
 export default function EventPage() {
+  const currentUser = useCurrentUser();
   const params = useParams<{ id: string }>();
   const event = useEventStore((s) => s.events[params.id]);
   const activities = useEventStore((s) => s.activities[params.id] ?? EMPTY_ACTIVITIES);
 
-  const me = useMemo(() => event?.participants.find((p) => p.userId === currentUser.id), [event]);
+  const me = useMemo(() => event?.participants.find((p) => p.userId === currentUser.id), [event, currentUser.id]);
   const isHost = event?.hostId === currentUser.id;
 
   if (!event) {

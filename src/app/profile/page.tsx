@@ -10,10 +10,11 @@ import { QuickActionsGrid } from "@/components/profile/quick-actions-grid";
 import { StatisticsGrid } from "@/components/profile/statistics-grid";
 import { RecentActivityPanel, type RecentOrderEntry } from "@/components/profile/recent-activity-panel";
 import { useEventStore } from "@/store/event-store";
-import { currentUser } from "@/mock/users";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import { mockInvitations, mockMoneySaved, mockFavouriteRestaurant } from "@/mock/profile";
 
 export default function ProfilePage() {
+  const currentUser = useCurrentUser();
   const order = useEventStore((s) => s.order);
   const events = useEventStore((s) => s.events);
 
@@ -27,8 +28,8 @@ export default function ProfilePage() {
 
   const myEvents = useMemo(() => order.map((id) => events[id]).filter(Boolean), [order, events]);
 
-  const hosted = useMemo(() => myEvents.filter((e) => e.hostId === currentUser.id), [myEvents]);
-  const joined = useMemo(() => myEvents.filter((e) => e.hostId !== currentUser.id), [myEvents]);
+  const hosted = useMemo(() => myEvents.filter((e) => e.hostId === currentUser.id), [myEvents, currentUser.id]);
+  const joined = useMemo(() => myEvents.filter((e) => e.hostId !== currentUser.id), [myEvents, currentUser.id]);
 
   const latestEvents = useMemo(
     () => [...myEvents].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5),
@@ -52,8 +53,7 @@ export default function ProfilePage() {
       }
     }
     return entries.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-  }, [myEvents]);
-
+  }, [myEvents, currentUser.id]);
   const totalOrders = latestOrders.length;
   const aiOrders = latestOrders.filter((o) => o.aiSelected).length;
   const averageOrderValue = totalOrders > 0 ? latestOrders.reduce((sum, o) => sum + o.cartValue, 0) / totalOrders : 0;

@@ -13,11 +13,12 @@ import { useEventStore } from "@/store/event-store";
 import { useUIStore } from "@/store/ui-store";
 import { mockRestaurants } from "@/mock/restaurants";
 import { getMenuFor } from "@/mock/menus";
-import { currentUser } from "@/mock/users";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import { formatCurrency, cn } from "@/lib/utils";
 import { ROUTES } from "@/constants";
 
 export default function RestaurantDetailPage() {
+  const currentUser = useCurrentUser();
   const params = useParams<{ id: string; restaurantId: string }>();
   const router = useRouter();
   const event = useEventStore((s) => s.events[params.id]);

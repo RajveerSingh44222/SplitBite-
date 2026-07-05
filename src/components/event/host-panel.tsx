@@ -1,17 +1,33 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Trash2, Pencil, CheckCircle2, Clock, Sparkles } from "lucide-react";
+import { Trash2, Pencil, CheckCircle2, Clock, Sparkles, TimerReset } from "lucide-react";
 import type { PartyEvent } from "@/types";
 import { Avatar } from "@/components/ui/avatar";
 import { ProgressRing } from "@/components/ui/progress-ring";
 import { formatCurrency } from "@/lib/utils";
 import { useEventStore } from "@/store/event-store";
 import { useUIStore } from "@/store/ui-store";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 export function HostPanel({ event }: { event: PartyEvent }) {
+  const currentUser = useCurrentUser();
   const removeParticipant = useEventStore((s) => s.removeParticipant);
+  const extendTimer = useEventStore((s) => s.extendTimer);
+  const pushActivity = useEventStore((s) => s.pushActivity);
   const showToast = useUIStore((s) => s.showToast);
+
+  function handleExtendTimer(minutes: number) {
+    extendTimer(event.id, minutes);
+    pushActivity(event.id, {
+      type: "timer-updated",
+      actorName: currentUser.name,
+      actorAvatar: currentUser.avatar,
+      message: `extended the timer by ${minutes} minutes`,
+      timestamp: new Date().toISOString(),
+    });
+    showToast({ title: `Timer extended by ${minutes} min`, kind: "success" });
+  }
 
   const total = event.participants.length;
   const ordered = event.participants.filter((p) => p.status === "ordered").length;
@@ -25,6 +41,14 @@ export function HostPanel({ event }: { event: PartyEvent }) {
         <h3 className="font-display text-lg font-semibold">Host panel</h3>
         <span className="text-xs font-medium text-ink-soft">Only you can see this</span>
       </div>
+
+      <button
+        onClick={() => handleExtendTimer(5)}
+        className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border-subtle py-2.5 text-sm font-semibold text-ink-soft transition-colors hover:border-ember hover:text-ember"
+      >
+        <TimerReset className="h-4 w-4" />
+        Extend timer by 5 min
+      </button>
 
       <div className="mt-5 flex items-center gap-5">
         <ProgressRing progress={progress} size={76} color="var(--color-kasturi)">
