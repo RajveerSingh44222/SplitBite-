@@ -13,6 +13,7 @@ import { DashboardStats } from "@/components/dashboard/stats";
 import { ActivityFeed } from "@/components/shared/activity-feed";
 import { useEventStore } from "@/store/event-store";
 import { currentUser } from "@/mock/users";
+import { getEventPhase } from "@/lib/utils";
 import { ROUTES } from "@/constants";
 import { useQuery } from "@tanstack/react-query";
 import { Link2 } from "lucide-react";
@@ -37,8 +38,12 @@ export default function DashboardPage() {
   [order, events]
 );
 
-  const upcoming = useMemo(() => myEvents.filter((e) => e.status !== "completed"), [myEvents]);
-  const past = useMemo(() => myEvents.filter((e) => e.status === "completed"), [myEvents]);
+  // Uses the same lifecycle-phase mapping as the event router so an event
+  // placed via "Place order" (status "ordered"/"delivered") lands in "Past"
+  // immediately instead of lingering in "Upcoming" until its status
+  // eventually became the literal string "completed".
+  const upcoming = useMemo(() => myEvents.filter((e) => getEventPhase(e.status) !== "completed"), [myEvents]);
+  const past = useMemo(() => myEvents.filter((e) => getEventPhase(e.status) === "completed"), [myEvents]);
   const hosted = useMemo(() => myEvents.filter((e) => e.hostId === currentUser.id), [myEvents]);
   const joined = useMemo(() => myEvents.filter((e) => e.hostId !== currentUser.id), [myEvents]);
   const shown = tab === "upcoming" ? upcoming : past;
