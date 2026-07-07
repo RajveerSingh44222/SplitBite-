@@ -34,6 +34,9 @@ export function ParticipantCard({ participant, index = 0 }: { participant: Parti
         <p className="truncate text-xs text-ink-soft">
           {p.restaurantName ?? "Hasn't picked a restaurant yet"}
         </p>
+        {p.autoSelected && p.autoSelectReason && (
+          <p className="mt-0.5 line-clamp-2 text-[11px] italic text-ink-soft/70">{p.autoSelectReason}</p>
+        )}
       </div>
 
       <div className="flex shrink-0 flex-col items-end gap-1.5">

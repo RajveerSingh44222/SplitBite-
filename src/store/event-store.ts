@@ -3,7 +3,10 @@ import type { ActivityItem, CartLine, Participant, PartyEvent, ParticipantStatus
 import { buildSeedEvent, buildActivityFeed, buildPastEvents } from "@/mock/events";
 import { getCurrentUser } from "@/hooks/use-current-user";
 import { mockRestaurants } from "@/mock/restaurants";
+import { mockUsers } from "@/mock/users";
 import { randomId } from "@/lib/utils";
+import { pickAutoOrder } from "@/lib/ai-scoring";
+import { buildFallbackExplanation } from "@/lib/ai-explain";
 
 interface CreateEventInput {
   name: string;
@@ -32,6 +35,7 @@ interface EventState {
   markOrdered: (eventId: string, userId: string) => void;
   setParticipantStatus: (eventId: string, userId: string, status: ParticipantStatus) => void;
   autoSelectRemaining: (eventId: string) => void;
+  setAutoSelectReason: (eventId: string, userId: string, reason: string) => void;
   placeEventOrder: (eventId: string) => void;
   extendTimer: (eventId: string, minutes: number) => void;
   removeParticipant: (eventId: string, userId: string) => void;
@@ -206,13 +210,50 @@ export const useEventStore = create<EventState>((set, get) => ({
       return { events: { ...state.events, [eventId]: { ...event, participants } } };
     }),
 
+  /**
+   * Rule-based "Smart Auto Ordering": for every participant who didn't order
+   * in time, picks a restaurant + items using their favourite cuisines, past
+   * orders, and the event budget (see `lib/ai-scoring.ts`). Nothing here
+   * calls a model — the reasoning text is a deterministic template that gets
+   * upgraded asynchronously by `setAutoSelectReason` once the LLM-phrased
+   * version comes back, so the UI never blocks waiting on it.
+   */
   autoSelectRemaining: (eventId) =>
     set((state) => {
       const event = state.events[eventId];
       if (!event) return state;
       const fallbackRestaurant = mockRestaurants.find((r) => event.suggestedRestaurantIds.includes(r.id)) ?? mockRestaurants[0];
+
       const participants = event.participants.map((p) => {
         if (p.status === "ordered") return p;
+
+        const user = mockUsers.find((u) => u.id === p.userId);
+        const pick = user ? pickAutoOrder(user, event.budgetPerPerson, event.suggestedRestaurantIds) : null;
+
+        if (pick) {
+          return {
+            ...p,
+            status: "auto-selected" as ParticipantStatus,
+            autoSelected: true,
+            restaurantId: p.restaurantId ?? pick.restaurant.id,
+            restaurantName: p.restaurantName ?? pick.restaurant.name,
+            cart: p.cart.length
+              ? p.cart
+              : pick.items.map((item) => ({
+                  menuItemId: item.id,
+                  name: item.name,
+                  price: item.price,
+                  quantity: 1,
+                  isVeg: item.isVeg,
+                  image: item.image,
+                })),
+            cartValue: p.cartValue || pick.total,
+            autoSelectReason: buildFallbackExplanation("auto-order", pick.facts),
+            eta: p.eta ?? `${25 + Math.floor(Math.random() * 15)} min`,
+          };
+        }
+
+        // No user profile / no menu fit within budget — safe generic fallback.
         const price = Math.min(event.budgetPerPerson - 20, 280);
         return {
           ...p,
@@ -237,6 +278,14 @@ export const useEventStore = create<EventState>((set, get) => ({
         };
       });
       return { events: { ...state.events, [eventId]: { ...event, participants, status: "reviewing" } } };
+    }),
+
+  setAutoSelectReason: (eventId, userId, reason) =>
+    set((state) => {
+      const event = state.events[eventId];
+      if (!event) return state;
+      const participants = event.participants.map((p) => (p.userId === userId ? { ...p, autoSelectReason: reason } : p));
+      return { events: { ...state.events, [eventId]: { ...event, participants } } };
     }),
 
   placeEventOrder: (eventId) =>

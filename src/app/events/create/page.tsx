@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Calendar, Clock, MapPin, Wallet, Timer, Sparkles, ArrowRight, Users } from "lucide-react";
@@ -13,6 +13,8 @@ import { useEventStore } from "@/store/event-store";
 import { useUIStore } from "@/store/ui-store";
 import { formatCurrency, formatShortDate } from "@/lib/utils";
 import { ROUTES } from "@/constants";
+import { rankRestaurantsForEvent, type RestaurantRecommendation } from "@/lib/ai-scoring";
+import { buildFallbackExplanation, explainWithAI } from "@/lib/ai-explain";
 
 export default function CreateEventPage() {
   const router = useRouter();
@@ -26,12 +28,43 @@ export default function CreateEventPage() {
   const [time, setTime] = useState("20:00");
   const [budget, setBudget] = useState(500);
   const [expiry, setExpiry] = useState(30);
+  const [guestCount, setGuestCount] = useState(6);
   const [selectedRestaurants, setSelectedRestaurants] = useState<string[]>(
     mockRestaurants.slice(0, 3).map((r) => r.id)
   );
   const [submitting, setSubmitting] = useState(false);
+  const [reasons, setReasons] = useState<Record<string, string>>({});
 
-  const aiSuggested = useMemo(() => mockRestaurants.slice(0, 6), []);
+  /**
+   * Feature 2 — Restaurant Selection Assistant. Ranks every restaurant
+   * against this event's budget and guest count (rule-based, instant), then
+   * asks an LLM to phrase the top picks' reasoning in one sentence each.
+   */
+  const ranked: RestaurantRecommendation[] = useMemo(
+    () => rankRestaurantsForEvent({ budgetPerPerson: budget, guestCount }),
+    [budget, guestCount]
+  );
+  const aiSuggested = useMemo(() => ranked.slice(0, 6).map((r) => r.restaurant), [ranked]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const top = ranked.slice(0, 6);
+
+    // Instant, deterministic reasons first — never wait on the network for these.
+    setReasons(Object.fromEntries(top.map((r) => [r.restaurant.id, buildFallbackExplanation("restaurant-pick", r.facts)])));
+
+    // Then upgrade each one with an LLM-phrased sentence as it arrives.
+    top.forEach((r) => {
+      explainWithAI("restaurant-pick", r.facts).then((text) => {
+        if (cancelled) return;
+        setReasons((prev) => ({ ...prev, [r.restaurant.id]: text }));
+      });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [ranked]);
 
   function toggleRestaurant(id: string) {
     setSelectedRestaurants((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
@@ -118,6 +151,21 @@ export default function CreateEventPage() {
               </div>
               <div>
                 <label className="mb-1.5 flex items-center justify-between text-sm font-medium text-ink-soft">
+                  <span className="flex items-center gap-1.5"><Users className="h-4 w-4" /> Expected guests</span>
+                  <span className="font-mono font-semibold text-foreground">{guestCount}</span>
+                </label>
+                <input
+                  type="range"
+                  min={2}
+                  max={30}
+                  step={1}
+                  value={guestCount}
+                  onChange={(e) => setGuestCount(Number(e.target.value))}
+                  className="w-full accent-ember"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 flex items-center justify-between text-sm font-medium text-ink-soft">
                   <span className="flex items-center gap-1.5"><Timer className="h-4 w-4" /> Invite expires in</span>
                   <span className="font-mono font-semibold text-foreground">{expiry} min</span>
                 </label>
@@ -145,6 +193,7 @@ export default function CreateEventPage() {
                     restaurant={r}
                     selected={selectedRestaurants.includes(r.id)}
                     onToggle={() => toggleRestaurant(r.id)}
+                    reason={reasons[r.id]}
                   />
                 ))}
               </div>

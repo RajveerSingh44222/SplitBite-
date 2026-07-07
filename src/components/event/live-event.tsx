@@ -17,6 +17,9 @@ import { EventHero } from "@/components/event/event-hero";
 import { useEventStore } from "@/store/event-store";
 import { useUIStore } from "@/store/ui-store";
 import { mockRestaurants } from "@/mock/restaurants";
+import { mockUsers } from "@/mock/users";
+import { pickAutoOrder } from "@/lib/ai-scoring";
+import { explainWithAI } from "@/lib/ai-explain";
 import { formatCurrency } from "@/lib/utils";
 import { ROUTES } from "@/constants";
 import type { ActivityItem, Participant, PartyEvent } from "@/types";
@@ -38,6 +41,7 @@ interface LiveEventProps {
 export function LiveEvent({ event, me, isHost, activities }: LiveEventProps) {
   const router = useRouter();
   const autoSelectRemaining = useEventStore((s) => s.autoSelectRemaining);
+  const setAutoSelectReason = useEventStore((s) => s.setAutoSelectReason);
   const showToast = useUIStore((s) => s.showToast);
   const [aiModalOpen, setAiModalOpen] = useState(false);
 
@@ -46,6 +50,25 @@ export function LiveEvent({ event, me, isHost, activities }: LiveEventProps) {
     [event.suggestedRestaurantIds]
   );
   const waitingCount = event.participants.filter((p) => p.status === "invited" || p.status === "browsing").length;
+
+  /**
+   * Kicks off the LLM-phrased explanation for each participant who just got
+   * auto-selected. `autoSelectRemaining` already applied the rule-based pick
+   * and a deterministic fallback reason synchronously, so this only ever
+   * upgrades text that's already correct and already on screen.
+   */
+  function enrichAutoSelectReasons() {
+    const waiting = event.participants.filter((p) => p.status === "invited" || p.status === "browsing");
+    for (const p of waiting) {
+      const user = mockUsers.find((u) => u.id === p.userId);
+      if (!user) continue;
+      const pick = pickAutoOrder(user, event.budgetPerPerson, event.suggestedRestaurantIds);
+      if (!pick) continue;
+      explainWithAI("auto-order", pick.facts).then((text) => {
+        setAutoSelectReason(event.id, p.userId, text);
+      });
+    }
+  }
 
   function handleTimerComplete() {
     if (waitingCount > 0) {
@@ -57,6 +80,7 @@ export function LiveEvent({ event, me, isHost, activities }: LiveEventProps) {
   }
 
   function handleAIComplete() {
+    enrichAutoSelectReasons();
     autoSelectRemaining(event.id);
   }
 

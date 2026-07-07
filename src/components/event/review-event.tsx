@@ -110,6 +110,12 @@ export function ReviewEvent({ event, isHost }: ReviewEventProps) {
                   </div>
                 ))}
               </div>
+              {p.autoSelected && p.autoSelectReason && (
+                <p className="mt-3 flex items-start gap-1.5 border-t border-border-subtle pt-3 text-xs italic text-ink-soft">
+                  <Sparkles className="mt-0.5 h-3 w-3 shrink-0 text-saffron" />
+                  {p.autoSelectReason}
+                </p>
+              )}
             </motion.div>
           ))}
         </div>

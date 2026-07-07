@@ -37,6 +37,8 @@ export interface Participant {
   eta?: string;
   isHost: boolean;
   autoSelected?: boolean;
+  /** One-line "why" for an auto-selected order — rule-based instantly, upgraded by an LLM when available. */
+  autoSelectReason?: string;
   joinedAt: string;
 }
 

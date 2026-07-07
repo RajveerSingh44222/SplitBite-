@@ -10,10 +10,13 @@ export function RestaurantChip({
   restaurant,
   selected,
   onToggle,
+  reason,
 }: {
   restaurant: Restaurant;
   selected: boolean;
   onToggle: () => void;
+  /** Optional one-line "why this was recommended" shown under the cuisine line. */
+  reason?: string;
 }) {
   return (
     <motion.button
@@ -33,6 +36,7 @@ export function RestaurantChip({
         <p className="flex items-center gap-1 text-xs text-ink-soft">
           <Star className="h-3 w-3 fill-saffron text-saffron" /> {restaurant.rating} &middot; {restaurant.cuisines[0]}
         </p>
+        {reason && <p className="mt-0.5 truncate text-[11px] italic text-ink-soft/70">{reason}</p>}
       </div>
       <div
         className={cn(

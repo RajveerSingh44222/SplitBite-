@@ -1,17 +1,51 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingBag, ArrowRight, Pencil } from "lucide-react";
+import { ShoppingBag, ArrowRight, Pencil, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BudgetBar } from "@/components/shared/budget-bar";
 import type { Participant, PartyEvent } from "@/types";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, msUntil } from "@/lib/utils";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { buildReminderFacts } from "@/lib/ai-scoring";
+import { buildFallbackExplanation, explainWithAI } from "@/lib/ai-explain";
 import { ROUTES } from "@/constants";
+
+/**
+ * Feature 4 — Smart Personalized Reminders. While the current user hasn't
+ * ordered yet, this reuses the same cuisine/budget matching logic as
+ * auto-ordering (rule-based, instant) to nudge them toward what they'd
+ * probably want, then upgrades the copy with an LLM-phrased sentence.
+ */
+function useReminderText(event: PartyEvent) {
+  const user = useCurrentUser();
+  const [text, setText] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const minutesLeft = Math.max(1, Math.round(msUntil(event.deadlineISO) / 60000));
+    const facts = buildReminderFacts(user, event.budgetPerPerson, event.suggestedRestaurantIds, minutesLeft);
+
+    setText(buildFallbackExplanation("reminder", facts));
+    explainWithAI("reminder", facts).then((upgraded) => {
+      if (!cancelled) setText(upgraded);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [event.id, event.deadlineISO, event.budgetPerPerson]);
+
+  return text;
+}
 
 export function YourOrderCard({ event, me }: { event: PartyEvent; me: Participant }) {
   const isEmpty = me.cart.length === 0;
+  const reminderText = useReminderText(event);
 
   return (
     <div className="rounded-2xl border border-border-subtle bg-surface p-6 shadow-soft">
@@ -42,6 +76,12 @@ export function YourOrderCard({ event, me }: { event: PartyEvent; me: Participan
           <p className="mt-1 max-w-[220px] text-sm text-ink-soft">
             Browse nearby restaurants and add food within your {formatCurrency(event.budgetPerPerson)} budget.
           </p>
+          {reminderText && (
+            <p className="mt-3 flex max-w-[280px] items-start gap-1.5 rounded-xl bg-ember/5 px-3 py-2 text-left text-xs text-foreground">
+              <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ember" />
+              {reminderText}
+            </p>
+          )}
           <Link href={ROUTES.restaurants(event.id)} className="mt-5 w-full">
             <Button className="group w-full">
               Add food
