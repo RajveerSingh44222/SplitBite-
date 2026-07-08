@@ -20,7 +20,7 @@ function extractCode(raw: string): string {
     return parts[parts.length - 1] ?? trimmed;
   } catch {
     // Not a full URL — treat as a raw code or a path fragment, e.g.
-    // "DIWALI-8F2K" or "/join/DIWALI-8F2K" or "partyplatter.app/join/DIWALI-8F2K"
+    // "DIWALI-8F2K" or "/join/DIWALI-8F2K" or "splitbite.app/join/DIWALI-8F2K"
     const parts = trimmed.split("/").filter(Boolean);
     return parts[parts.length - 1];
   }
@@ -57,7 +57,7 @@ export default function JoinEntryPage() {
           <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-ember text-white">
             <UtensilsCrossed className="h-4 w-4" />
           </span>
-          PartyPlatter
+          SplitBite
         </Link>
 
         <h1 className="text-center font-display text-2xl font-semibold">Join an event</h1>
@@ -67,7 +67,7 @@ export default function JoinEntryPage() {
           <Input
             label="Invite link or code"
             icon={<Link2 className="h-4 w-4" />}
-            placeholder="partyplatter.app/join/DIWALI-8F2K"
+            placeholder="splitbite.app/join/DIWALI-8F2K"
             value={value}
             onChange={(e) => setValue(e.target.value)}
             autoFocus

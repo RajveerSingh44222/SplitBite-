@@ -9,6 +9,7 @@ import { ProfileHeaderCard } from "@/components/profile/profile-header-card";
 import { QuickActionsGrid } from "@/components/profile/quick-actions-grid";
 import { StatisticsGrid } from "@/components/profile/statistics-grid";
 import { RecentActivityPanel, type RecentOrderEntry } from "@/components/profile/recent-activity-panel";
+import { AIPreferencesCard } from "@/components/profile/ai-preferences-card";
 import { useEventStore } from "@/store/event-store";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { mockInvitations, mockMoneySaved, mockFavouriteRestaurant } from "@/mock/profile";
@@ -121,6 +122,13 @@ export default function ProfilePage() {
                 averageOrderValue={averageOrderValue}
               />
             )}
+          </div>
+        </section>
+
+        <section className="mt-10">
+          <h2 className="font-display text-lg font-semibold">AI preferences</h2>
+          <div className="mt-4">
+            {isLoading ? <Skeleton className="h-40 w-full" /> : <AIPreferencesCard />}
           </div>
         </section>
 

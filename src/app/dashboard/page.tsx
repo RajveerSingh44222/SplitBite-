@@ -59,14 +59,27 @@ function DashboardContent() {
   const joined = useMemo(() => myEvents.filter((e) => e.hostId !== currentUser.id), [myEvents, currentUser.id]);
   const shown = tab === "upcoming" ? upcoming : past;
 
+  // "Recent activity" is a cross-event feed, so on its own each row is
+  // ambiguous about which event it belongs to (e.g. "extended the timer by
+  // 5 minutes" — which event?). We scope it to live events only (a
+  // completed event's old activity isn't useful here) and hand the feed a
+  // name lookup so it can show + link the event per row.
+  const liveEvents = useMemo(() => myEvents.filter((e) => getEventPhase(e.status) !== "completed"), [myEvents]);
+  const liveEventIds = useMemo(() => new Set(liveEvents.map((e) => e.id)), [liveEvents]);
+  const eventNameById = useMemo(
+    () => Object.fromEntries(liveEvents.map((e) => [e.id, e.name])),
+    [liveEvents]
+  );
+
   const recentActivity = useMemo(
-  () =>
-    Object.values(activities)
-      .flat()
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-      .slice(0, 6),
-  [activities]
-);
+    () =>
+      Object.values(activities)
+        .flat()
+        .filter((a) => liveEventIds.has(a.eventId))
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .slice(0, 6),
+    [activities, liveEventIds]
+  );
 
   return (
     <main className="min-h-screen pb-24">
@@ -154,7 +167,7 @@ function DashboardContent() {
               <h3 className="font-display text-base font-semibold">Recent activity</h3>
               <div className="mt-2">
                 {recentActivity.length > 0 ? (
-                  <ActivityFeed items={recentActivity} />
+                  <ActivityFeed items={recentActivity} eventNames={eventNameById} />
                 ) : (
                   <p className="py-6 text-center text-sm text-ink-soft">Nothing yet. Create an event to get started.</p>
                 )}

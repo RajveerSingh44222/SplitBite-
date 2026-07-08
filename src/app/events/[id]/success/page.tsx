@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Clock3, PartyPopper } from "lucide-react";
 import { Navbar } from "@/components/layout/navbar";
+import { RouteNotFound } from "@/components/shared/route-not-found";
 import { Button } from "@/components/ui/button";
 import { AvatarGroup } from "@/components/ui/avatar";
 import { Confetti } from "@/components/shared/confetti";
@@ -19,12 +20,10 @@ export default function SuccessPage() {
 
   if (!event) {
     return (
-      <main className="min-h-screen">
-        <Navbar authed />
-        <div className="mx-auto max-w-3xl px-6 py-24 text-center">
-          <h1 className="font-display text-2xl font-semibold">Event not found</h1>
-        </div>
-      </main>
+      <RouteNotFound
+        title="Event not found"
+        description="This event may have expired, been deleted, or the link is incorrect."
+      />
     );
   }
 

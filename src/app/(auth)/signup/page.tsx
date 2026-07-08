@@ -20,7 +20,7 @@ export default function SignupPage() {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      showToast({ title: "Account created", description: "Welcome to PartyPlatter", kind: "success" });
+      showToast({ title: "Account created", description: "Welcome to SplitBite", kind: "success" });
       router.push(ROUTES.dashboard);
     }, 900);
   }
@@ -41,7 +41,7 @@ export default function SignupPage() {
           <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-ember text-white">
             <UtensilsCrossed className="h-4 w-4" />
           </span>
-          PartyPlatter
+          SplitBite
         </Link>
 
         <h1 className="text-center font-display text-2xl font-semibold">Create your account</h1>

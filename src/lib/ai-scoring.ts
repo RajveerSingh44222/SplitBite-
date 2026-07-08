@@ -55,7 +55,8 @@ export interface AutoOrderPick {
 export function pickAutoOrder(
   user: User,
   budgetPerPerson: number,
-  suggestedRestaurantIds: string[]
+  suggestedRestaurantIds: string[],
+  preferences?: { vegOnly?: boolean }
 ): AutoOrderPick | null {
   const pool =
     suggestedRestaurantIds.length > 0
@@ -73,7 +74,9 @@ export function pickAutoOrder(
   const restaurant = ranked[0] ?? mockRestaurants[0];
   if (!restaurant) return null;
 
-  const menu = getMenuFor(restaurant.id).filter((m) => m.price <= budgetPerPerson);
+  const menu = getMenuFor(restaurant.id).filter(
+    (m) => m.price <= budgetPerPerson && (!preferences?.vegOnly || m.isVeg)
+  );
   if (menu.length === 0) return null;
 
   const matchedCuisine = cuisineOverlap(user.favoriteCuisines, restaurant.cuisines)[0] ?? null;

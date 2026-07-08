@@ -4,8 +4,9 @@ import { useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Calendar, Clock, MapPin, Users, Wallet, UtensilsCrossed, ArrowRight } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, Wallet, UtensilsCrossed, ArrowRight, Link2Off } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { RouteNotFound } from "@/components/shared/route-not-found";
 import { Input } from "@/components/ui/input";
 import { AvatarGroup } from "@/components/ui/avatar";
 import { Countdown } from "@/components/shared/countdown";
@@ -33,15 +34,17 @@ export default function JoinPage() {
 
   if (!event) {
     return (
-      <main className="flex min-h-screen items-center justify-center px-4">
-        <div className="text-center">
-          <h1 className="font-display text-2xl font-semibold">Invite not found</h1>
-          <p className="mt-2 text-ink-soft">This link may have expired.</p>
+      <RouteNotFound
+        authed={false}
+        icon={Link2Off}
+        title="Invite not found"
+        description="This link may have expired, or the invite code was typed incorrectly."
+        action={
           <Link href={ROUTES.home}>
-            <Button className="mt-6">Go home</Button>
+            <Button size="lg">Go home</Button>
           </Link>
-        </div>
-      </main>
+        }
+      />
     );
   }
 
@@ -91,7 +94,7 @@ export default function JoinPage() {
             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/20">
               <UtensilsCrossed className="h-3.5 w-3.5" />
             </span>
-            PartyPlatter Invite
+            SplitBite Invite
           </div>
         </div>
 

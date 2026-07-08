@@ -14,6 +14,13 @@ export interface User {
   memberSinceISO?: string;
 }
 
+export interface AIPreferences {
+  /** If false, AI auto-select will skip this user entirely when they miss the deadline — they stay "invited"/"browsing" instead of getting an order placed for them. */
+  autoOrderEnabled: boolean;
+  /** If true, AI auto-select will only ever pick vegetarian items for this user. */
+  vegOnly: boolean;
+}
+
 export type ParticipantStatus = "invited" | "browsing" | "ordered" | "auto-selected" | "left";
 
 export interface CartLine {

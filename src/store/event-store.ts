@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import type { ActivityItem, CartLine, Participant, PartyEvent, ParticipantStatus } from "@/types";
-import { buildSeedEvent, buildActivityFeed, buildPastEvents } from "@/mock/events";
+import { buildSeedEvent, buildGuestSeedEvent, buildActivityFeed, buildPastEvents } from "@/mock/events";
 import { getCurrentUser } from "@/hooks/use-current-user";
+import { useProfileStore } from "@/store/profile-store";
 import { mockRestaurants } from "@/mock/restaurants";
 import { mockUsers } from "@/mock/users";
 import { randomId } from "@/lib/utils";
@@ -42,17 +43,20 @@ interface EventState {
 }
 
 const seed = buildSeedEvent();
+const guestSeed = buildGuestSeedEvent();
 const pastEvents = buildPastEvents();
 
 export const useEventStore = create<EventState>((set, get) => ({
   events: {
     [seed.id]: seed,
+    [guestSeed.id]: guestSeed,
     ...Object.fromEntries(pastEvents.map((e) => [e.id, e])),
   },
   activities: {
     [seed.id]: buildActivityFeed(seed.id),
+    [guestSeed.id]: buildActivityFeed(guestSeed.id),
   },
-  order: [seed.id, ...pastEvents.map((e) => e.id)],
+  order: [seed.id, guestSeed.id, ...pastEvents.map((e) => e.id)],
 
   createEvent: (input) => {
     const currentUser = getCurrentUser();
@@ -223,12 +227,25 @@ export const useEventStore = create<EventState>((set, get) => ({
       const event = state.events[eventId];
       if (!event) return state;
       const fallbackRestaurant = mockRestaurants.find((r) => event.suggestedRestaurantIds.includes(r.id)) ?? mockRestaurants[0];
+      const currentUserId = getCurrentUser().id;
+      const aiPreferences = useProfileStore.getState().aiPreferences;
 
       const participants = event.participants.map((p) => {
         if (p.status === "ordered") return p;
 
+        // The logged-in user is the only participant with real, configurable
+        // AI preferences — everyone else here is a mock crew member without
+        // a settings screen. Opting out means they simply don't get an
+        // order placed for them; they stay "invited"/"browsing" and the
+        // host sees them as a guest who missed the deadline, same as before
+        // this feature existed.
+        if (p.userId === currentUserId && !aiPreferences.autoOrderEnabled) {
+          return p;
+        }
+
         const user = mockUsers.find((u) => u.id === p.userId);
-        const pick = user ? pickAutoOrder(user, event.budgetPerPerson, event.suggestedRestaurantIds) : null;
+        const preferences = p.userId === currentUserId ? { vegOnly: aiPreferences.vegOnly } : undefined;
+        const pick = user ? pickAutoOrder(user, event.budgetPerPerson, event.suggestedRestaurantIds, preferences) : null;
 
         if (pick) {
           return {

@@ -8,6 +8,7 @@ export const ROUTES = {
   restaurants: (id: string) => `/events/${id}/restaurants`,
   restaurant: (id: string, restaurantId: string) => `/events/${id}/restaurants/${restaurantId}`,
   review: (id: string) => `/events/${id}/review`,
+  payment: (id: string) => `/events/${id}/payment`,
   success: (id: string) => `/events/${id}/success`,
   join: (code: string) => `/join/${code}`,
   joinEntry: "/join",
@@ -15,7 +16,7 @@ export const ROUTES = {
   paymentMethods: "/profile/payment",
 };
 
-export const APP_NAME = "PartyPlatter";
+export const APP_NAME = "SplitBite";
 export const APP_TAGLINE = "Collaborative food ordering for every gathering.";
 
 export const CARD_BRAND_LABEL: Record<"visa" | "mastercard" | "rupay" | "amex", string> = {

@@ -1,14 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Clock3, Sparkles, ArrowRight, PackageSearch } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
 import { EmptyState } from "@/components/shared/empty-state";
-import { useEventStore } from "@/store/event-store";
-import { useUIStore } from "@/store/ui-store";
 import { formatCurrency } from "@/lib/utils";
 import { ROUTES } from "@/constants";
 import type { PartyEvent } from "@/types";
@@ -21,31 +18,19 @@ interface ReviewEventProps {
 
 /**
  * The Reviewing-phase screen. No countdown, no cart editing for guests —
- * this is where the host approves everyone's order and places the single
- * combined order. Used both as the body of `/events/[id]/review` and as
- * the router's rendering for `status === "reviewing"` so the logic only
- * lives in one place.
+ * this is where the host approves everyone's order and moves on to pay.
+ * Used both as the body of `/events/[id]/review` and as the router's
+ * rendering for `status === "reviewing"` so the logic only lives in one
+ * place. Placing the order (and the store mutation for it) happens on the
+ * payment page, not here — this screen only decides everyone's ready.
  */
 export function ReviewEvent({ event, isHost }: ReviewEventProps) {
   const router = useRouter();
-  const placeEventOrder = useEventStore((s) => s.placeEventOrder);
-  const showToast = useUIStore((s) => s.showToast);
-  const [placing, setPlacing] = useState(false);
 
   const readyParticipants = event.participants.filter((p) => p.status === "ordered" || p.status === "auto-selected");
   const notReadyParticipants = event.participants.filter((p) => p.status === "invited" || p.status === "browsing");
   const grandTotal = event.participants.reduce((sum, p) => sum + p.cartValue, 0);
   const estimatedDelivery = `${25 + Math.floor(Math.random() * 15)}-${45 + Math.floor(Math.random() * 10)} min`;
-
-  function handlePlaceOrder() {
-    setPlacing(true);
-    setTimeout(() => {
-      placeEventOrder(event.id);
-      setPlacing(false);
-      showToast({ title: "Order placed!", description: "Everyone will get their food soon", kind: "success" });
-      router.push(ROUTES.success(event.id));
-    }, 1400);
-  }
 
   return (
     <div className="mx-auto max-w-4xl px-6 pt-8">
@@ -135,9 +120,8 @@ export function ReviewEvent({ event, isHost }: ReviewEventProps) {
           {isHost ? (
             <Button
               size="lg"
-              loading={placing}
               disabled={readyParticipants.length === 0}
-              onClick={handlePlaceOrder}
+              onClick={() => router.push(ROUTES.payment(event.id))}
               className="group"
             >
               Place order

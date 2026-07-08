@@ -10,6 +10,7 @@ import type {
   SavedUpi,
   SavedWallet,
 } from "@/types/payment";
+import type { AIPreferences } from "@/types";
 
 function detectBrand(cardNumber: string): SavedCard["brand"] {
   const digits = cardNumber.replace(/\s+/g, "");
@@ -24,6 +25,7 @@ interface ProfileState {
   upiAccounts: SavedUpi[];
   wallets: SavedWallet[];
   defaultMethod: DefaultPaymentMethod;
+  aiPreferences: AIPreferences;
 
   addCard: (input: AddCardInput) => void;
   addUpi: (input: AddUpiInput) => void;
@@ -36,6 +38,8 @@ interface ProfileState {
   removeWallet: (id: string) => void;
 
   setDefaultMethod: (method: DefaultPaymentMethod) => void;
+  setAutoOrderEnabled: (enabled: boolean) => void;
+  setVegOnly: (vegOnly: boolean) => void;
 }
 
 export const useProfileStore = create<ProfileState>((set, get) => ({
@@ -43,6 +47,14 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   upiAccounts: initialUpiAccounts,
   wallets: initialWallets,
   defaultMethod: initialDefaultMethod,
+  aiPreferences: {
+    autoOrderEnabled: true,
+    vegOnly: false,
+  },
+
+  setAutoOrderEnabled: (enabled) =>
+    set((state) => ({ aiPreferences: { ...state.aiPreferences, autoOrderEnabled: enabled } })),
+  setVegOnly: (vegOnly) => set((state) => ({ aiPreferences: { ...state.aiPreferences, vegOnly } })),
 
   addCard: (input) =>
     set((state) => {

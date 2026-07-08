@@ -33,7 +33,7 @@ export function Navbar({ authed }: { authed?: boolean }) {
             <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-ember text-white">
               <UtensilsCrossed className="h-4 w-4" />
             </span>
-            PartyPlatter
+            SplitBite
           </Link>
 
           {!authed && (

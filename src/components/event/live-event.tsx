@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Link2, ArrowRight } from "lucide-react";
+import { Link2, ArrowRight, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Countdown } from "@/components/shared/countdown";
 import { ActivityFeed } from "@/components/shared/activity-feed";
@@ -13,6 +13,7 @@ import { ParticipantCard } from "@/components/event/participant-card";
 import { HostPanel } from "@/components/event/host-panel";
 import { YourOrderCard } from "@/components/event/your-order-card";
 import { AIModal } from "@/components/event/ai-modal";
+import { LeaveEventModal } from "@/components/event/leave-event-modal";
 import { EventHero } from "@/components/event/event-hero";
 import { useEventStore } from "@/store/event-store";
 import { useUIStore } from "@/store/ui-store";
@@ -44,6 +45,7 @@ export function LiveEvent({ event, me, isHost, activities }: LiveEventProps) {
   const setAutoSelectReason = useEventStore((s) => s.setAutoSelectReason);
   const showToast = useUIStore((s) => s.showToast);
   const [aiModalOpen, setAiModalOpen] = useState(false);
+  const [leaveModalOpen, setLeaveModalOpen] = useState(false);
 
   const suggested = useMemo(
     () => mockRestaurants.filter((r) => event.suggestedRestaurantIds.includes(r.id)),
@@ -87,7 +89,7 @@ export function LiveEvent({ event, me, isHost, activities }: LiveEventProps) {
   function copyInvite() {
     showToast({
       title: "Invite link copied!",
-      description: `partyplatter.app/join/${event.inviteCode}`,
+      description: `splitbite.app/join/${event.inviteCode}`,
       kind: "success",
     });
   }
@@ -180,8 +182,24 @@ export function LiveEvent({ event, me, isHost, activities }: LiveEventProps) {
               </Button>
             </Link>
           )}
+
+          {!isHost && (
+            <button
+              onClick={() => setLeaveModalOpen(true)}
+              className="flex w-full items-center justify-center gap-1.5 rounded-full border border-border-subtle py-3 text-sm font-semibold text-ink-soft transition-colors hover:border-chili hover:text-chili"
+            >
+              <LogOut className="h-3.5 w-3.5" /> Leave event
+            </button>
+          )}
         </aside>
       </div>
+
+      <LeaveEventModal
+        open={leaveModalOpen}
+        onClose={() => setLeaveModalOpen(false)}
+        eventId={event.id}
+        eventName={event.name}
+      />
 
       <AIModal
         open={aiModalOpen}

@@ -2,9 +2,9 @@
 
 import { useMemo } from "react";
 import { useParams } from "next/navigation";
-import Link from "next/link";
+import { UserX } from "lucide-react";
+import { RouteNotFound } from "@/components/shared/route-not-found";
 import { Navbar } from "@/components/layout/navbar";
-import { Button } from "@/components/ui/button";
 import { LiveEvent } from "@/components/event/live-event";
 import { ReviewEvent } from "@/components/event/review-event";
 import { CompletedEvent } from "@/components/event/completed-event";
@@ -12,7 +12,6 @@ import { DraftEvent } from "@/components/event/draft-event";
 import { useEventStore } from "@/store/event-store";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { getEventPhase } from "@/lib/utils";
-import { ROUTES } from "@/constants";
 
 const EMPTY_ACTIVITIES: never[] = [];
 
@@ -36,16 +35,10 @@ export default function EventPage() {
 
   if (!event) {
     return (
-      <main className="min-h-screen">
-        <Navbar authed />
-        <div className="mx-auto max-w-3xl px-6 py-24 text-center">
-          <h1 className="font-display text-2xl font-semibold">Event not found</h1>
-          <p className="mt-2 text-ink-soft">This event may have expired or the link is incorrect.</p>
-          <Link href={ROUTES.dashboard}>
-            <Button className="mt-6">Back to dashboard</Button>
-          </Link>
-        </div>
-      </main>
+      <RouteNotFound
+        title="Event not found"
+        description="This event may have expired, been deleted, or the link is incorrect."
+      />
     );
   }
 
@@ -55,16 +48,11 @@ export default function EventPage() {
   // YourOrderCard — if that's ever missing, fail safe instead of crashing.
   if (phase === "collecting" && !me) {
     return (
-      <main className="min-h-screen">
-        <Navbar authed />
-        <div className="mx-auto max-w-3xl px-6 py-24 text-center">
-          <h1 className="font-display text-2xl font-semibold">You&apos;re not part of this event yet</h1>
-          <p className="mt-2 text-ink-soft">Ask the host for the invite link to join.</p>
-          <Link href={ROUTES.dashboard}>
-            <Button className="mt-6">Back to dashboard</Button>
-          </Link>
-        </div>
-      </main>
+      <RouteNotFound
+        icon={UserX}
+        title="You're not part of this event yet"
+        description="Ask the host for the invite link to join."
+      />
     );
   }
 

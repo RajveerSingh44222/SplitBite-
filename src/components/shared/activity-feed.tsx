@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { Avatar } from "@/components/ui/avatar";
 import type { ActivityItem } from "@/types";
+import { ROUTES } from "@/constants";
 import { UserPlus, UtensilsCrossed, RefreshCcw, TimerReset, Sparkles, LogOut } from "lucide-react";
 
 const ICONS: Record<ActivityItem["type"], React.ElementType> = {
@@ -23,12 +25,26 @@ function timeAgo(iso: string) {
   return `${hrs}h ago`;
 }
 
-export function ActivityFeed({ items, className }: { items: ActivityItem[]; className?: string }) {
+interface ActivityFeedProps {
+  items: ActivityItem[];
+  className?: string;
+  /**
+   * Maps eventId -> event name. Pass this when the feed spans multiple
+   * events (e.g. the dashboard's cross-event "Recent activity" panel) so
+   * each row can show — and link to — which event it belongs to. Omit it
+   * (e.g. inside a single event's own page, where the context is already
+   * obvious) and rows render exactly as before.
+   */
+  eventNames?: Record<string, string>;
+}
+
+export function ActivityFeed({ items, className, eventNames }: ActivityFeedProps) {
   return (
     <div className={className}>
       <AnimatePresence initial={false}>
         {items.map((item) => {
           const Icon = ICONS[item.type];
+          const eventName = eventNames?.[item.eventId];
           return (
             <motion.div
               key={item.id}
@@ -50,7 +66,20 @@ export function ActivityFeed({ items, className }: { items: ActivityItem[]; clas
                   <span className="font-semibold">{item.actorName}</span>{" "}
                   <span className="text-ink-soft">{item.message}</span>
                 </p>
-                <p className="text-xs text-ink-soft/70">{timeAgo(item.timestamp)}</p>
+                <div className="mt-0.5 flex items-center gap-1.5">
+                  <p className="text-xs text-ink-soft/70">{timeAgo(item.timestamp)}</p>
+                  {eventName && (
+                    <>
+                      <span className="text-ink-soft/40">&middot;</span>
+                      <Link
+                        href={ROUTES.event(item.eventId)}
+                        className="truncate text-xs font-medium text-ember hover:underline"
+                      >
+                        {eventName}
+                      </Link>
+                    </>
+                  )}
+                </div>
               </div>
             </motion.div>
           );

@@ -3,6 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Navbar } from "@/components/layout/navbar";
+import { RouteNotFound } from "@/components/shared/route-not-found";
 import { ReviewEvent } from "@/components/event/review-event";
 import { useEventStore } from "@/store/event-store";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -23,12 +24,10 @@ export default function ReviewPage() {
 
   if (!event) {
     return (
-      <main className="min-h-screen">
-        <Navbar authed />
-        <div className="mx-auto max-w-3xl px-6 py-24 text-center">
-          <h1 className="font-display text-2xl font-semibold">Event not found</h1>
-        </div>
-      </main>
+      <RouteNotFound
+        title="Event not found"
+        description="This event may have expired, been deleted, or the link is incorrect."
+      />
     );
   }
 

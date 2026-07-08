@@ -6,6 +6,7 @@ import { AnimatePresence } from "framer-motion";
 import { ArrowLeft, Search, SearchX } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Navbar } from "@/components/layout/navbar";
+import { RouteNotFound } from "@/components/shared/route-not-found";
 import { RestaurantCard } from "@/components/restaurant/restaurant-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -44,12 +45,10 @@ export default function RestaurantBrowserPage() {
 
   if (!event) {
     return (
-      <main className="min-h-screen">
-        <Navbar authed />
-        <div className="mx-auto max-w-3xl px-6 py-24 text-center">
-          <h1 className="font-display text-2xl font-semibold">Event not found</h1>
-        </div>
-      </main>
+      <RouteNotFound
+        title="Event not found"
+        description="This event may have expired, been deleted, or the link is incorrect."
+      />
     );
   }
 

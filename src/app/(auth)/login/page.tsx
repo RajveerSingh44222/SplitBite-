@@ -43,7 +43,7 @@ export default function LoginPage() {
           <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-ember text-white">
             <UtensilsCrossed className="h-4 w-4" />
           </span>
-          PartyPlatter
+          SplitBite
         </Link>
 
         <h1 className="text-center font-display text-2xl font-semibold">Welcome back</h1>
@@ -106,7 +106,7 @@ export default function LoginPage() {
         </Button>
 
         <p className="mt-8 text-center text-sm text-ink-soft">
-          New to PartyPlatter?{" "}
+          New to SplitBite?{" "}
           <Link href={ROUTES.signup} className="font-semibold text-ember hover:underline">
             Create an account
           </Link>

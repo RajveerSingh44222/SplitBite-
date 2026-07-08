@@ -2,10 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { ArrowLeft, Star, Clock, Search, ShoppingBag } from "lucide-react";
+import { ArrowLeft, Star, Clock, Search, ShoppingBag, UserX } from "lucide-react";
 import { Navbar } from "@/components/layout/navbar";
+import { RouteNotFound } from "@/components/shared/route-not-found";
+import { Button } from "@/components/ui/button";
 import { FoodCard } from "@/components/restaurant/food-card";
 import { CartDrawer } from "@/components/restaurant/cart-drawer";
 import { Badge } from "@/components/ui/badge";
@@ -49,14 +52,36 @@ export default function RestaurantDetailPage() {
     return list;
   }, [menu, activeCategory, search]);
 
-  if (!event || !restaurant || !me) {
+  if (!event) {
     return (
-      <main className="min-h-screen">
-        <Navbar authed />
-        <div className="mx-auto max-w-3xl px-6 py-24 text-center">
-          <h1 className="font-display text-2xl font-semibold">Restaurant not found</h1>
-        </div>
-      </main>
+      <RouteNotFound
+        title="Event not found"
+        description="This event may have expired, been deleted, or the link is incorrect."
+      />
+    );
+  }
+
+  if (!restaurant) {
+    return (
+      <RouteNotFound
+        title="Restaurant not found"
+        description="This restaurant isn't available for this event anymore."
+        action={
+          <Link href={ROUTES.restaurants(event.id)}>
+            <Button size="lg">Browse restaurants</Button>
+          </Link>
+        }
+      />
+    );
+  }
+
+  if (!me) {
+    return (
+      <RouteNotFound
+        icon={UserX}
+        title="You're not part of this event yet"
+        description="Ask the host for the invite link to join."
+      />
     );
   }
 
