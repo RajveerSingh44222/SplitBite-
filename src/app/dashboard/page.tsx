@@ -49,21 +49,12 @@ function DashboardContent() {
   [order, events]
 );
 
-  // Uses the same lifecycle-phase mapping as the event router so an event
-  // placed via "Place order" (status "ordered"/"delivered") lands in "Past"
-  // immediately instead of lingering in "Upcoming" until its status
-  // eventually became the literal string "completed".
   const upcoming = useMemo(() => myEvents.filter((e) => getEventPhase(e.status) !== "completed"), [myEvents]);
   const past = useMemo(() => myEvents.filter((e) => getEventPhase(e.status) === "completed"), [myEvents]);
   const hosted = useMemo(() => myEvents.filter((e) => e.hostId === currentUser.id), [myEvents, currentUser.id]);
   const joined = useMemo(() => myEvents.filter((e) => e.hostId !== currentUser.id), [myEvents, currentUser.id]);
   const shown = tab === "upcoming" ? upcoming : past;
 
-  // "Recent activity" is a cross-event feed, so on its own each row is
-  // ambiguous about which event it belongs to (e.g. "extended the timer by
-  // 5 minutes" — which event?). We scope it to live events only (a
-  // completed event's old activity isn't useful here) and hand the feed a
-  // name lookup so it can show + link the event per row.
   const liveEvents = useMemo(() => myEvents.filter((e) => getEventPhase(e.status) !== "completed"), [myEvents]);
   const liveEventIds = useMemo(() => new Set(liveEvents.map((e) => e.id)), [liveEvents]);
   const eventNameById = useMemo(
