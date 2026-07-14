@@ -13,13 +13,15 @@
 - Typography
 - Spacing & Layout
 - Navigation
-- Screen Flow
+- User Flow
+- Screen Architecture
 - Component Library
 - State Management
 - Responsive Design
 - Accessibility
 - Animations
 - Future Improvements
+- Design Philosophy
 
 ---
 
@@ -36,7 +38,7 @@ SplitBite is designed around three principles:
 # Technology Stack
 
 | Layer | Technology |
-|---------|------------|
+|--------|------------|
 | Framework | Next.js (App Router) |
 | Language | TypeScript |
 | UI Library | React |
@@ -134,6 +136,17 @@ G["Menu"]
 H["Cart"]
 I["Order Confirmation"]
 J["Completed"]
+
+A --> B
+B --> C
+C --> D
+D --> E
+E --> F
+F --> G
+G --> H
+H --> I
+I --> J
+```
 
 ---
 
