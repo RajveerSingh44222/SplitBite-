@@ -124,40 +124,16 @@ Dashboard
 ```mermaid
 flowchart LR
 
-Landing
-
--->
-
-Authentication
-
--->
-
-Dashboard
-
--->
-
-Create Event
-
--->
-
-Invite Friends
-
--->
-
-Restaurant Selection
-
--->
-
-Cart
-
--->
-
-Confirmation
-
--->
-
-Completed
-```
+A["Landing"]
+B["Authentication"]
+C["Dashboard"]
+D["Create Event"]
+E["Invite Friends"]
+F["Restaurant Selection"]
+G["Menu"]
+H["Cart"]
+I["Order Confirmation"]
+J["Completed"]
 
 ---
 
