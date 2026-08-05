@@ -48,13 +48,32 @@ def login(
     if not user or not verify_password(request.password, user.password_hash):
         raise HTTPException(
             status_code=401,
-            detail="Invalid Credentials"
+            detail="Invalid credentials"
         )
 
-    access_token = create_access_token(data={"sub": user.id})
+    access_token = create_access_token(
+        data={
+            "user_id": str(user.id),
+            "email": user.email,
+            "type": "access"
+        }
+    )
+
+    refresh_token = create_refresh_token(
+        data={
+            "user_id": str(user.id),
+            "type": "refresh"
+        }
+    )
+
+    store_refresh_token(
+        user_id=str(user.id),
+        refresh_token=refresh_token
+    )
 
     return {
         "access_token": access_token,
+        "refresh_token": refresh_token,
         "token_type": "bearer"
     }
 
@@ -65,14 +84,25 @@ def refresh_token(
     access_token = create_access_token(
         data={
             "user_id": str(current_user.id),
-            "email": current_user.email
+            "email": current_user.email,
+            "type": "access"
         }
     )
 
     refresh_token = create_refresh_token(
         data={
-            "user_id": str(current_user.id)
+            "user_id": str(current_user.id),
+            "type": "refresh"
         }
+    )
+
+    delete_refresh_token(
+        user_id=str(current_user.id)
+    )
+
+    store_refresh_token(
+        user_id=str(current_user.id),
+        refresh_token=refresh_token
     )
 
     return {
