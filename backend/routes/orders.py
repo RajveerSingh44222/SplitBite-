@@ -32,3 +32,17 @@ def get_event_status(
     }
     """
     pass
+
+@router.get("/events/{event_id}/ordersummary")
+def get_order_summary(
+    event_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Returns the final order summary for an event.
+
+    Only available once the event reaches
+    'ordered', 'delivered', or 'completed'.
+    """
+    pass
