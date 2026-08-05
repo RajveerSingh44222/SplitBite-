@@ -13,8 +13,9 @@ def create_event(
     pass
 
 
-@router.get("", response_model=EventListResponse)
-def get_user_events(
+@router.get("")
+def get_events(
+    scope: str | None = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -38,20 +39,6 @@ def join_event(
 ):
     pass
 
-@router.get("")
-def get_events(
-    scope: str,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """
-    Returns a lightweight list of events for the dashboard.
-
-    Supported scopes:
-    - upcoming
-    - past
-    """
-    pass
 
 @router.delete("/{event_id}/participants/{user_id}")
 def remove_participant(
