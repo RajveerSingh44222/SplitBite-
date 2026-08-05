@@ -37,3 +37,18 @@ def join_event(
     db: Session = Depends(get_db)
 ):
     pass
+
+@router.get("")
+def get_events(
+    scope: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Returns a lightweight list of events for the dashboard.
+
+    Supported scopes:
+    - upcoming
+    - past
+    """
+    pass
