@@ -3,20 +3,12 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 
-# ==========================
-# Create Event
-# ==========================
-
 class CreateEventRequest(BaseModel):
     name: str = Field(min_length=3, max_length=100)
     budget_per_person: float = Field(gt=0)
     delivery_address: str = Field(min_length=5, max_length=255)
     ordering_deadline: datetime
 
-
-# ==========================
-# Join Event
-# ==========================
 
 class JoinEventRequest(BaseModel):
     invite_code: str
